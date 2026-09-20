@@ -52,7 +52,7 @@
  */
 import { createHash, randomBytes } from 'node:crypto'
 import type { Context } from '@deepseek-ai/cordis'
-import { redactSecrets, settingsNamespace, type SettingsScope } from '@deepseek-ai/dsh-settings'
+import { redactSecrets, type SettingsScope } from '@deepseek-ai/dsh-settings'
 import type {} from '@deepseek-ai/dsh-system-prompt'
 import { VoiceModeSettingsSchema } from './config-schema.ts'
 import type { VoiceModeEndpointConfig, VoiceModeSettings } from './config-schema.ts'
@@ -357,7 +357,7 @@ export function apply(ctx: Context): void {
   const webServer = ctx.get('webServer') as { register: (route: unknown) => () => void } | undefined
   if (!webServer) return
 
-  const settingsScope: SettingsScope<VoiceModeSettings> = ctx.settings.register(settingsNamespace('voice-mode'), VoiceModeSettingsSchema)
+  const settingsScope: SettingsScope<VoiceModeSettings> = ctx.settings.register('voice-mode', VoiceModeSettingsSchema)
 
   // Plain HTTP settings read/write for the client's own Settings > Plugins >
   // Voice Mode tab (client.js's VoiceModeEndpointSettings) - same
