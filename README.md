@@ -91,5 +91,11 @@ Leave `apiKey` blank if your server doesn't need one. The local-voice field sugg
 
 A few other plugins cover similar ground: [erkkimon/dsh-plugin-voice-mode](https://github.com/erkkimon/dsh-plugin-voice-mode) adds a record button to the composer; [dsh-voice-talk](https://github.com/duoduoqian708) is a phone-call layout docked beside the transcript; [haoku123/dsh-voice](https://github.com/haoku123/dsh-voice) has real barge-in but plain terminal chrome; [PerryLink/dsh-talk](https://github.com/PerryLink/dsh-talk) focuses on backend breadth over visuals. This plugin is the only one that takes over the whole screen with one continuously-animated ring, the only one with a Chat/Task preset switch, and the only one where STT and TTS each independently pick local vs. cloud.
 
+## Community and support
+
+- Report bugs or ask questions via [Issues](https://github.com/ZG2017/dsh-plugin-voice-loop/issues) or [Discussions](https://github.com/ZG2017/dsh-plugin-voice-loop/discussions) on this repo.
+- Tagged [`dsh-plugin`](https://github.com/topics/dsh-plugin) for discoverability.
+- Join the [DeepSeek Harness Discord](https://discord.gg/Ycq5dCaS4) community.
+
 ---
 *Unofficial project, independently developed and maintained by a community member. Not affiliated with or endorsed by DeepSeek.*
