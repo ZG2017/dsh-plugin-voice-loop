@@ -1,0 +1,39 @@
+{
+  "name": "@gz2016/dsh-plugin-voice-loop",
+  "description": "Fully self-contained hands-free full-screen voice interface: continuous mic capture with adaptive, noise-floor-tracking auto-stop, transcribed via a swappable STT backend (local Qwen3-ASR or cloud Qwen3-ASR-Flash by default), replies read aloud via a swappable TTS backend (local Qwen3-TTS or Edge TTS by default). Real barge-in cancels an in-flight reply server-side, the same RPC the core composer's own stop button uses, not just muting playback. The local/cloud backend choice (per-request, from the client's own quick toggle) is decoupled from which endpoint/model each one actually calls (per-deployment, editable from DSH's own Settings page) - point either backend at your own OpenAI-compatible server. Renders as a fixed-position view from a composer toggle (conversation.input.left); also registers a Settings > Plugins tab. Plan-review/question prompts are announced aloud and handed off to the normal on-screen panel rather than answered by voice.",
+  "version": "0.2.0",
+  "license": "MIT",
+  "author": "ZG2017",
+  "homepage": "https://github.com/ZG2017/dsh-plugin-voice-loop#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZG2017/dsh-plugin-voice-loop.git"
+  },
+  "keywords": ["deepseek-harness", "dsh", "dsh-plugin", "voice", "speech-to-text", "text-to-speech", "hands-free"],
+  "type": "module",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-connection"
+      ]
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-host-webserver": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-system-prompt": "0.1.1-rc.2",
+    "@deepseek-ai/dsh-settings": "0.1.1-rc.2",
+    "@deepseek-ai/schemastery": "^3.18.1"
+  }
+}
