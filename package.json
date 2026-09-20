@@ -24,6 +24,9 @@
     "esbuild": "^0.28.2"
   },
   "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
     "client": {
       "platform": "web",
       "immediately": true,
