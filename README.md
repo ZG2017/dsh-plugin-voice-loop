@@ -15,7 +15,7 @@ Voice Mode turns the composer into a full-screen, hands-free loop: tap once, tal
 ## Install
 
 ```sh
-dsh plugin --profile web add @gz2016/dsh-plugin-voice-loop
+dsh plugin --profile web add github:ZG2017/dsh-plugin-voice-loop
 ```
 
 The composer toggle appears automatically once installed - no preset directory or persona setup needed.
