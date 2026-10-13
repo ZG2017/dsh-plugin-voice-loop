@@ -14,11 +14,17 @@ Voice Mode turns the composer into a full-screen, hands-free loop: tap once, tal
 
 ## Install
 
+Requires DeepSeek Harness **0.2.1-alpha.2 or newer** (see [DSH 0.2 update](#dsh-02-update)).
+
+**From the app:** Plugins → install `github:ZG2017/dsh-plugin-voice-loop`. Installing from the Plugins page also turns the bundle on.
+
+**From the CLI:**
+
 ```sh
 dsh plugin --profile web add github:ZG2017/dsh-plugin-voice-loop
 ```
 
-The composer toggle appears automatically once installed - no preset directory or persona setup needed.
+`dsh plugin add` only runs `pnpm add`. Also add `"@gz2016/dsh-plugin-voice-loop"` to `dsh.profile.bundles` in `~/.dsh/profiles/web/package.json`, then restart. DSH 0.2 loads a profile package only when it is selected as a bundle; it then applies this package's `cordis.patch.yml`.
 
 ## How it works
 
@@ -90,6 +96,18 @@ Leave `apiKey` blank if your server doesn't need one. The local-voice field sugg
 ## Compared to other DSH voice plugins
 
 A few other plugins cover similar ground: [erkkimon/dsh-plugin-voice-mode](https://github.com/erkkimon/dsh-plugin-voice-mode) adds a record button to the composer; [dsh-voice-talk](https://github.com/duoduoqian708) is a phone-call layout docked beside the transcript; [haoku123/dsh-voice](https://github.com/haoku123/dsh-voice) has real barge-in but plain terminal chrome; [PerryLink/dsh-talk](https://github.com/PerryLink/dsh-talk) focuses on backend breadth over visuals. This plugin is the only one that takes over the whole screen with one continuously-animated ring, the only one with a Chat/Task preset switch, and the only one where STT and TTS each independently pick local vs. cloud.
+
+
+## DSH 0.2 update
+
+DeepSeek Harness 0.2 (0.2.1-alpha.2) changed several plugin APIs this package used, so the 0.1 release does not load on it: DSH disables it at startup because its peer versions are pinned to 0.1.1-rc.2. This release targets 0.2.1-alpha.2.
+
+What changed:
+
+- Settings: DSH 0.2 removed `ctx.settings.register()`. The four endpoint blocks are now this plugin's `Config`, each marked `.volatile()`, so Settings → Plugins → Voice Mode still edits them live; edits are saved into your profile's `cordis.patch.yml`.
+- Client `inject` list: the removed `@deepseek-ai/dsh-client-runtime` is replaced by the packages that now provide each service (`sessions` → `dsh-api-session-controller`, `slots` → `dsh-client-ui-renderer`, `connection` → `dsh-client-connection`).
+- `peerDependencies` now name the 0.2.1-alpha.2 packages.
+- Install instructions changed: `dsh plugin add` no longer selects the bundle on its own (see [Install](#install)).
 
 ---
 *Unofficial project, independently developed and maintained by a community member. Not affiliated with or endorsed by DeepSeek.*

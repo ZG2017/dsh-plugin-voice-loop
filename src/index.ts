@@ -52,10 +52,12 @@
  */
 import { createHash, randomBytes } from 'node:crypto'
 import type { Context } from '@deepseek-ai/cordis'
-import { redactSecrets, type SettingsScope } from '@deepseek-ai/dsh-settings'
+import { redactSecrets } from '@deepseek-ai/dsh-settings'
 import type {} from '@deepseek-ai/dsh-system-prompt'
-import { VoiceModeSettingsSchema } from './config-schema.ts'
-import type { VoiceModeEndpointConfig, VoiceModeSettings } from './config-schema.ts'
+// Type-only: the Fiber.entry merge (the profile entry id Settings edits).
+import type {} from '@deepseek-ai/dsh-config-editor'
+import { VoiceModeConfigSchema, VoiceModeSettingsSchema, currentSettings } from './config-schema.ts'
+import type { VoiceModeConfig, VoiceModeEndpointConfig, VoiceModeSettings } from './config-schema.ts'
 
 // Which STT backend to use - 'local' (a self-hosted server, see
 // config-schema.ts's sttLocal) or 'cloud' (a hosted transcription API, see
@@ -117,7 +119,8 @@ const activeSessions = new Map<string, boolean>()
 const presetModeSessions = new Map<string, 'chat' | 'task'>()
 
 export const name = 'voice-loop'
-export const inject = ['webServer', 'systemPrompt', 'settings']
+export const inject = ['webServer', 'systemPrompt']
+export const Config = VoiceModeConfigSchema
 
 // Lets a deployment that already exports OPENROUTER_API_KEY for other
 // purposes skip configuring sttCloud.apiKey separately. This is only a
@@ -147,7 +150,7 @@ async function transcribeGeneric(audio: Uint8Array, mime: string, cfg: VoiceMode
   if (audio.byteLength === 0) throw new Error('voice-mode: recorded audio is empty')
   if (!cfg.endpoint) throw new Error(`voice-mode: ${label} STT endpoint is not configured - set one in Settings → Plugins → Voice Mode`)
   const form = new FormData()
-  form.set('file', new Blob([audio], { type: mime || 'audio/wav' }), 'audio.wav')
+  form.set('file', new Blob([new Uint8Array(audio)], { type: mime || 'audio/wav' }), 'audio.wav')
   form.set('model', cfg.model)
   const headers: Record<string, string> = {}
   if (cfg.apiKey) headers.Authorization = `Bearer ${cfg.apiKey}`
@@ -353,11 +356,10 @@ function writeJson(res: { writeHead: (code: number, headers: Record<string, stri
   res.end(JSON.stringify(value))
 }
 
-export function apply(ctx: Context): void {
+export function apply(ctx: Context, config: VoiceModeConfig): void {
   const webServer = ctx.get('webServer') as { register: (route: unknown) => () => void } | undefined
   if (!webServer) return
 
-  const settingsScope: SettingsScope<VoiceModeSettings> = ctx.settings.register('voice-mode', VoiceModeSettingsSchema)
 
   // Plain HTTP settings read/write for the client's own Settings > Plugins >
   // Voice Mode tab (client.js's VoiceModeEndpointSettings) - same
@@ -379,11 +381,14 @@ export function apply(ctx: Context): void {
           const chunks: Buffer[] = []
           for await (const chunk of req) chunks.push(chunk)
           const patch = JSON.parse(Buffer.concat(chunks).toString('utf8')) as Partial<VoiceModeSettings>
-          await settingsScope.update(patch)
+          const settingsForms = ctx.get('settings')
+          const entryId = ctx.fiber.entry?.options.id
+          if (settingsForms === undefined || entryId === undefined) throw new Error('voice-mode: settings are not editable in this deployment')
+          await settingsForms.update(entryId, patch)
           writeJson(res, 200, { ok: true })
           return
         }
-        writeJson(res, 200, redactSecrets(VoiceModeSettingsSchema, settingsScope.get()))
+        writeJson(res, 200, redactSecrets(VoiceModeSettingsSchema as never, currentSettings(config)))
       } catch (err) {
         writeJson(res, 500, { error: err instanceof Error ? err.message : String(err) })
       }
@@ -402,7 +407,7 @@ export function apply(ctx: Context): void {
         const contentType = req.headers['content-type']
         const mime = typeof contentType === 'string' ? contentType : 'audio/wav'
         const sttProvider = resolveSttProvider(req.headers['x-voice-mode-stt-provider'])
-        const settings = settingsScope.get()
+        const settings = currentSettings(config)
         const text = sttProvider === 'cloud' ? await transcribeCloud(body, mime, settings) : await transcribeLocal(body, mime, settings)
         writeJson(res, 200, { text })
       } catch (err) {
@@ -446,7 +451,7 @@ export function apply(ctx: Context): void {
         const voice = typeof parsed.voice === 'string' && parsed.voice ? parsed.voice : 'en-US-AvaNeural'
         const localVoice = typeof parsed.localVoice === 'string' && parsed.localVoice ? parsed.localVoice : LOCAL_TTS_FALLBACK_VOICE
         const useLocal = parsed.provider === 'local'
-        const settings = settingsScope.get()
+        const settings = currentSettings(config)
         let audio: Buffer
         if (useLocal) {
           audio = await synthesizeOpenAiCompatibleTts(text, settings.ttsLocal, localVoice, 'local')

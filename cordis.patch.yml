@@ -1,6 +1,6 @@
-# The layer `dsh plugin add` activates automatically once this package
-# declares `dsh.bundle.patch` (see package.json) - registers the plugin
-# by package name so Node resolution finds the installed code. No
+# Bundle layer DSH applies when this package is a selected bundle
+# (dsh.bundle.patch in package.json) - registers the plugin by package
+# name so Node resolution finds the installed code. No
 # `config:` block needed: every setting (STT/TTS backend, endpoint/model,
 # keys) is either a per-request client choice or edited later from
 # Settings > Plugins > Voice Mode, not a deploy-time value.

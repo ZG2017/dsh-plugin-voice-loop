@@ -1,9 +1,8 @@
 /**
- * Host-only settings schema for @gz2016/dsh-plugin-voice-loop - registered
- * via `ctx.settings.register()` (the same `@deepseek-ai/dsh-settings`
- * mechanism other DSH plugins with configurable backends use), so it gets a
- * real entry in DSH's own Settings page for free, generically rendered from
- * this schema - no client-side settings code needed for that part.
+ * Host-only settings schema for @gz2016/dsh-plugin-voice-loop. The plugin's
+ * Config (`VoiceModeConfig` below) marks each of the four endpoint blocks
+ * `.volatile()`, so `@deepseek-ai/dsh-settings` can edit them live and
+ * persists edits into the active profile's patch.
  *
  * The point of this file: which backend runs ('local' vs 'cloud', chosen
  * live per-request by the client's own quick toggle - see
@@ -16,6 +15,7 @@
  * satisfy is documented on its schema field below, not enforced beyond what
  * index.ts already needs to parse a reply.
  */
+import type { Volatile } from '@deepseek-ai/cordis'
 import s from '@deepseek-ai/schemastery'
 
 /** One swappable STT or TTS endpoint: where to call, which model, and how to authenticate. */
@@ -99,3 +99,34 @@ export const VoiceModeSettingsSchema: s<VoiceModeSettings> = s.object({
     .description(`Optional cloud speech-synthesis backend, same contract as ttsLocal. Leave "endpoint" blank to use the built-in free Edge TTS voice instead (no key needed - the default "cloud" TTS choice). ${TTS_CONTRACT_NOTE}`)
     .collapse(),
 })
+
+/** The plugin Config: every endpoint block is live-editable through Settings. */
+export interface VoiceModeConfig {
+  sttLocal: Volatile<VoiceModeSettings['sttLocal']>
+  sttCloud: Volatile<VoiceModeSettings['sttCloud']>
+  ttsLocal: Volatile<VoiceModeSettings['ttsLocal']>
+  ttsCloud: Volatile<VoiceModeSettings['ttsCloud']>
+}
+
+const fields = VoiceModeSettingsSchema.dict as { [K in keyof VoiceModeSettings]: s<VoiceModeSettings[K]> }
+
+export const VoiceModeConfigSchema = s.object({
+  sttLocal: fields.sttLocal.volatile(),
+  sttCloud: fields.sttCloud.volatile(),
+  ttsLocal: fields.ttsLocal.volatile(),
+  ttsCloud: fields.ttsCloud.volatile(),
+})
+
+/**
+ * Read the current settings as one plain snapshot.
+ * @param config - the plugin's live Config references.
+ * @returns the four endpoint blocks as of this call.
+ */
+export function currentSettings(config: VoiceModeConfig): VoiceModeSettings {
+  return {
+    sttLocal: { ...config.sttLocal.get() },
+    sttCloud: { ...config.sttCloud.get() },
+    ttsLocal: { ...config.ttsLocal.get() },
+    ttsCloud: { ...config.ttsCloud.get() },
+  }
+}
